@@ -25,7 +25,9 @@ def clean_text(raw_text):
         r'\(edited\)',
         r'\s*·\s*',          # Menghapus titik tengah (middle dot) beserta spasinya
         r'^\s*\.\s*$',        # Menghapus titik yang berdiri sendirian di satu baris
-        r'\bprofile picture\b'
+        r'\bprofile picture\b',
+        r'\bView\b',
+        r'\breplies\b'
     ]
     for pattern in ui_patterns:
         text = re.sub(pattern, '', text, flags=re.IGNORECASE | re.MULTILINE)
