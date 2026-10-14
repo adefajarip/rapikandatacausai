@@ -27,7 +27,23 @@ def clean_text(raw_text):
         r'^\s*\.\s*$',        # Menghapus titik yang berdiri sendirian di satu baris
         r'\bprofile picture\b',
         r'\bView\b',
-        r'\breplies\b'
+        r'\breplies\b',
+        r'\ago\b',
+        r'\comments\b',
+        r'\1d\b',
+        r'\2d\b',
+        r'\3d\b',
+        r'\4d\b',
+        r'\5d\b',
+        r'\6d\b',
+        r'\7d\b',
+        r'\8d\b',
+        r'\9d\b',
+        r'\10d\b',
+        r'\minute\b',
+        r'\seconds\b',
+        r'\:\b'
+        
     ]
     for pattern in ui_patterns:
         text = re.sub(pattern, '', text, flags=re.IGNORECASE | re.MULTILINE)
