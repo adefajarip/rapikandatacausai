@@ -43,7 +43,6 @@ def clean_text(raw_text):
         r'\minute\b',
         r'\seconds\b',
         r'\:\b'
-        
     ]
     for pattern in ui_patterns:
         text = re.sub(pattern, '', text, flags=re.IGNORECASE | re.MULTILINE)
