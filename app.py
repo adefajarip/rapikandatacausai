@@ -11,6 +11,7 @@ def clean_text(raw_text):
     text = re.sub(r'@[\w-]+', '', text)
     
     # 2. Hapus UI Spesifik, deskripsi gambar, titik tengah "·", dll
+    # Perbaikan: Menghapus backslash yang salah (\a, \c, \:, dll) dan memperbaiki batasan kata
     ui_patterns = [
         r'\bShow (more )?replies\b', 
         r'\bReply\b', 
@@ -28,21 +29,12 @@ def clean_text(raw_text):
         r'\bprofile picture\b',
         r'\bView\b',
         r'\breplies\b',
-        r'\ago\b',
-        r'\comments\b',
-        r'\1d\b',
-        r'\2d\b',
-        r'\3d\b',
-        r'\4d\b',
-        r'\5d\b',
-        r'\6d\b',
-        r'\7d\b',
-        r'\8d\b',
-        r'\9d\b',
-        r'\10d\b',
-        r'\minute\b',
-        r'\seconds\b',
-        r'\:\b'
+        r'\bago\b',          # Diperbaiki dari \ago\b
+        r'\bcomments\b',     # Diperbaiki dari \comments\b
+        r'\b\d+d\b',         # Diperbaiki dari \1d\b s/d \10d\b (menangkap angka + d)
+        r'\bminute\b',
+        r'\bseconds\b',
+        r':'                 # Diperbaiki dari \:\b
     ]
     for pattern in ui_patterns:
         text = re.sub(pattern, '', text, flags=re.IGNORECASE | re.MULTILINE)
