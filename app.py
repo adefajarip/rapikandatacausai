@@ -3,15 +3,23 @@ import re
 import time
 
 def clean_text(raw_text):
-    """Fungsi untuk membersihkan teks mentah dari media sosial."""
+    """Fungsi untuk membersihkan teks mentah dari media sosial & transkrip otomatis."""
     
     text = raw_text
     
-    # 1. Hapus username/mention (Menangkap karakter strip spt @user-u2n)
+    # 1. Hapus username/mention (misal: @user-u2n)
     text = re.sub(r'@[\w-]+', '', text)
     
-    # 2. Hapus UI Spesifik, deskripsi gambar, titik tengah "·", dll
-    # Perbaikan: Menghapus backslash yang salah (\a, \c, \:, dll) dan memperbaiki batasan kata
+    # 2. Hapus pola timestamp waktu/durasi beserta koma dan spasi (misal: "7 seconds", "2 minutes,", "15 secondsdengan")
+    text = re.sub(r'\b\d+\s*(minutes?|seconds?|hours?|menit|detik|jam|hari|minggu|weeks? ago|days? ago|hours? ago|d|h|m|s)\b,?', '', text, flags=re.IGNORECASE)
+    
+    # 3. Hapus kata indikator waktu tersisa yang masih menempel
+    text = re.sub(r'\b(minutes?|seconds?|menit|detik)\b', '', text, flags=re.IGNORECASE)
+    
+    # 4. Hapus angka timestamp/urutan/ID di awal kata atau sebelum koma (misal: "1071 ,", "1151 ,", "2022")
+    text = re.sub(r'\b\d+\s*,?', '', text)
+    
+    # 5. Hapus UI Spesifik media sosial, deskripsi gambar, titik tengah "·", dll
     ui_patterns = [
         r'\bShow (more )?replies\b', 
         r'\bReply\b', 
@@ -29,28 +37,18 @@ def clean_text(raw_text):
         r'\bprofile picture\b',
         r'\bView\b',
         r'\breplies\b',
-        r'\bago\b',          # Diperbaiki dari \ago\b
-        r'\bcomments\b',     # Diperbaiki dari \comments\b
-        r'\b\d+d\b',         # Diperbaiki dari \1d\b s/d \10d\b (menangkap angka + d)
-        r'\bminute\b',
-        r'\bseconds\b',
-        r':'                 # Diperbaiki dari \:\b
+        r'\bago\b',          
+        r'\bcomments\b',     
+        r':'                 
     ]
     for pattern in ui_patterns:
         text = re.sub(pattern, '', text, flags=re.IGNORECASE | re.MULTILINE)
         
-    # 3. Hapus pola waktu/tanggal bahasa Inggris
-    text = re.sub(r'\b\d+\s*(h|m|s|w|weeks? ago|days? ago|hours? ago)\b', '', text, flags=re.IGNORECASE)
+    # 6. Hapus pola tanggal/bulan bahasa Inggris
     text = re.sub(r'\b(Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)\s\d+\b', '', text, flags=re.IGNORECASE)
     
-    # 4. Hapus pola waktu/tanggal bahasa Indonesia
-    text = re.sub(r'\b\d+\s?(minggu|hari|jam|menit|detik)\b', '', text, flags=re.IGNORECASE)
-    
-    # 5. Hapus angka tunggal dalam satu baris (seperti jumlah Like/View)
-    text = re.sub(r'^\s*\d+(\.\d+[KkMm]?)?\s*$', '', text, flags=re.MULTILINE)
-    
-    # 6. Hilangkan spasi dan baris kosong (enter) untuk menghemat token
-    text = re.sub(r' +', ' ', text)       # Ubah spasi ganda menjadi 1 spasi saja
+    # 7. Hilangkan spasi berlebih dan enter bertumpuk untuk pemadatan token
+    text = re.sub(r' +', ' ', text)       # Ubah spasi ganda menjadi 1 spasi
     text = re.sub(r'\n+', '\n', text)     # Ubah enter berkali-kali menjadi 1 enter saja
     
     return text.strip()
@@ -59,8 +57,8 @@ def clean_text(raw_text):
 # --- STREAMLIT UI ---
 st.set_page_config(page_title="Data Text Cleaner", page_icon="🧹", layout="wide")
 
-st.title("🧹 Pembersih Teks Media Sosial")
-st.write("Bersihkan data *scraping* kotor (X/Twitter, YouTube, dll) untuk menghemat token **(Teks padat, Username bersih sempurna, Emotikon dipertahankan)**.")
+st.title("🧹 Pembersih Teks Media Sosial & Transkrip")
+st.write("Bersihkan data *scraping* kotor (X/Twitter, YouTube, transkrip video, dll) untuk menghemat token **(Teks padat, Timestamp & UI bersih sempurna, Emotikon dipertahankan)**.")
 st.markdown("---")
 
 # Inisialisasi state untuk text area dan tracking file
@@ -100,7 +98,7 @@ with col1:
     if st.button("🧹 Bersihkan Teks", type="primary", use_container_width=True):
         if input_text:
             with st.spinner('Sedang membersihkan teks dan memadatkan token...'):
-                time.sleep(1) 
+                time.sleep(0.5) 
                 cleaned_result = clean_text(input_text)
                 st.session_state.cleaned_text = cleaned_result
                 
